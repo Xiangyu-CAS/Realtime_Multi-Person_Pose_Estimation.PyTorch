@@ -1,0 +1,8 @@
+export PYTHONUNBUFFERED="True"
+LOG="log/train-`date +'%Y-%m-%d-%H-%M-%S'`.log"
+# python train_pose.py --gpu 0 1 --train_dir /home/code/panhongyu/datasets/coco/filelist/traincoco_pytorch.txt /home/code/panhongyu/datasets/coco/masklist/traincoco_pytorch.txt /home/code/panhongyu/datasets/coco/json/traincoco_pytorch.json --val_dir /home/code/panhongyu/datasets/coco/filelist/valcoco_pytorch.txt /home/code/panhongyu/datasets/coco/masklist/valcoco_pytorch.txt /home/code/panhongyu/datasets/coco/json/valcoco_pytorch.json --config config.yml > $LOG
+
+#python -u train_pose.py --gpu 2 1 --pretrained /data/xiaobing.wang/qy.feng/Pytorch_RMPE/training/openpose_coco_latest.pth.tar --train_dir /data/xiaobing.wang/qy.feng/data/coco_pytorch/train_img_list.txt /data/xiaobing.wang/qy.feng/data/coco_pytorch/train_maskmiss_list.txt /data/xiaobing.wang/qy.feng/data/coco_pytorch/train_json_file.json --val_dir /data/xiaobing.wang/qy.feng/data/coco_pytorch/val_img_list.txt /data/xiaobing.wang/qy.feng/data/coco_pytorch/val_maskmiss_list.txt /data/xiaobing.wang/qy.feng/data/coco_pytorch/val_json_file.json --config config.yml 2>&1 | tee $LOG # ./output.txtopenpose_coco_best.pth.tar
+
+#--gpu 3 4
+python -u train_pose.py --gpu 7 --pretrained /data/xiaobing.wang/qy.feng/Pytorch_RMPE/training/openpose_coco_best.pth.tar --train_dir /data/xiaobing.wang/qy.feng/data/coco_pytorch/train_img_list.txt /data/xiaobing.wang/qy.feng/data/coco_pytorch/train_maskmiss_list.txt /data/xiaobing.wang/qy.feng/data/coco_pytorch/train_json_file.json --val_dir /data/xiaobing.wang/qy.feng/data/coco_pytorch/val_img_list.txt /data/xiaobing.wang/qy.feng/data/coco_pytorch/val_maskmiss_list.txt /data/xiaobing.wang/qy.feng/data/coco_pytorch/val_json_file.json --config config.yml 2>&1 | tee $LOG # ./output.txt

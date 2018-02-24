@@ -1,0 +1,13 @@
+workers: 6
+max_iter: 200000
+batch_size: 60
+policy_parameter: {'step_size': 68000, 'gamma': 0.333}
+base_lr: 4e-05
+topk: 3
+start_iters: 0
+lr_policy: step
+test_interval: 3000
+best_model: 12345678.9
+weight_decay: 0.0005
+display: 50
+momentum: 0.9
