@@ -12,21 +12,23 @@ sys.path.append('../')
 
 limbSeq = [[2,3], [2,6], [3,4], [4,5], [6,7], [7,8], [2,9], [9,10], \
            [10,11], [2,12], [12,13], [13,14], [2,1], [1,15], [15,17], \
-           [1,16], [16,18], [3,17], [6,18]]
+           [1,16], [16,18], [3,17], [6,18],\
+           [9,12],[3,9],[6,12],[1, 3],[1,6],[9,11], [12,14],[3,5],[6,8]]# new connection from 60.8% to 66.6%
 # the middle joints heatmap correpondence
 mapIdx = [[31,32], [39,40], [33,34], [35,36], [41,42], [43,44], [19,20], [21,22], \
           [23,24], [25,26], [27,28], [29,30], [47,48], [49,50], [53,54], [51,52], \
-          [55,56], [37,38], [45,46]]
+          [55,56], [37,38], [45,46],\
+          [57,58],[59,60],[61,62],[63,64], [65,66],[67,68],[69,70],[71,12],[73,74]] # new connection
 
 
 colors = [[255, 0, 0], [255, 85, 0], [255, 170, 0], [255, 255, 0], [170, 255, 0], [85, 255, 0], [0, 255, 0], \
           [0, 255, 85], [0, 255, 170], [0, 255, 255], [0, 170, 255], [0, 85, 255], [0, 0, 255], [85, 0, 255], \
-          [170, 0, 255], [255, 0, 255], [255, 0, 170], [255, 0, 85]]
+          [170, 0, 255], [255, 0, 255], [255, 0, 170], [255, 0, 85], \
+          [0, 0,0],[0, 0,0],[0, 0,0],[0, 0,0],[0, 0,0],[0, 0,0],[0, 0,0],[0, 0,0],[0, 0,0],[0, 0,0],[0, 0,0],[0, 0,0]]
 
 
 boxsize = 368
 scale_search = [0.5, 1.0, 1.5, 2.0]
-stride = 8
 padValue = 0.
 thre1 = 0.1
 thre2 = 0.05
@@ -70,8 +72,11 @@ def normalize(origin_img):
 def mechanism(img, img_anns):
     # -----------------------generate GT-------------------------------------
     COCO_TO_OURS = [0, 15, 14, 17, 16, 5, 2, 6, 3, 7, 4, 11, 8, 12, 9, 13, 10]
-    vec_pair = [[2, 9, 10, 2, 12, 13, 2, 3, 4, 3, 2, 6, 7, 6, 2, 1, 1, 15, 16],
-                [9, 10, 11, 12, 13, 14, 3, 4, 5, 17, 6, 7, 8, 18, 1, 15, 16, 17, 18]]
+    #vec_pair = [[2, 9,  10,  2, 12, 13, 2, 3, 4,  3, 2, 6, 7,  6, 2,  1,  1, 15, 16, 9, 12, 3, 2, 9],
+    #            [9, 10, 11, 12, 13, 14, 3, 4, 5, 17, 6, 7, 8, 18, 1, 15, 16, 17, 18, 11,14, 5, 7,12]]
+    vec_pair = [[2, 9,  10,  2, 12, 13, 2, 3, 4,  3, 2, 6, 7,  6, 2,  1,  1, 15, 16, 9, 3, 6, 1, 1, 9, 12,3,6],
+                [9, 10, 11, 12, 13, 14, 3, 4, 5, 17, 6, 7, 8, 18, 1, 15, 16, 17, 18,12, 9,12, 3, 6,11,14, 5,8]]
+
 
     lists = []
 
@@ -141,8 +146,8 @@ def mechanism(img, img_anns):
 
     import coco_loader
     stride = 8
-    theta = 1.0
-    sigma = 7.0
+    theta = 1
+    sigma = 9#7.0
     height, width, _ = img.shape
     heatmap = np.zeros((height / stride, width / stride, len(kpt[0]) + 1), dtype=np.float32)
     heatmap = coco_loader.generate_heatmap(heatmap, kpt, stride, sigma)
@@ -186,6 +191,22 @@ def mechanism(img, img_anns):
     connection_all = []
     special_k = []
     mid_num = 10
+
+    ####------------- replace heatmap with keypoints GT 68% -> 78.7%---------------
+
+    all_peaks = []
+    peak_counter = 0
+    for part in range(19 - 1):
+        peaks = []
+        for person in kpt:
+            if person[part][2] is not 2:
+                peaks.append(tuple([int(person[part][0]),int(person[part][1]),1,peak_counter]))
+                peak_counter = peak_counter + 1
+        #peak_counter += len(peaks)
+        all_peaks.append(peaks)
+
+    ####---------------------------------------------------------------------------
+
 
     for k in range(len(mapIdx)):
         score_mid = vecmap[:, :, [x - 19 for x in mapIdx[k]]]
@@ -249,8 +270,9 @@ def mechanism(img, img_anns):
                 subset_idx = [-1, -1]
                 for j in range(len(subset)):  # 1:size(subset,1):
                     if subset[j][indexA] == partAs[i] or subset[j][indexB] == partBs[i]:
-                        subset_idx[found] = j
-                        found += 1
+                        if found<2: # add
+                            subset_idx[found] = j
+                            found += 1
 
                 if found == 1:
                     j = subset_idx[0]
@@ -273,7 +295,7 @@ def mechanism(img, img_anns):
                         subset[j1][-2] += candidate[partBs[i].astype(int), 2] + connection_all[k][i][2]
 
                 # if find no partA in the subset, create a new subset
-                elif not found and k < 17:
+                elif not found and k < len(mapIdx):
                     row = -1 * np.ones(20)
                     row[indexA] = partAs[i]
                     row[indexB] = partBs[i]
@@ -294,7 +316,7 @@ def mechanism(img, img_anns):
             cv2.circle(canvas, all_peaks[i][j][0:2], 4, colors[i], thickness=-1)
 
     # draw lines
-    for i in range(17):
+    for i in range(len(limbSeq)):
         for n in range(len(subset)):
             index = subset[n][np.array(limbSeq[i]) - 1]
             if -1 in index:
@@ -318,9 +340,9 @@ def main():
 
     model = pose_estimation.PoseModel(num_point=19, num_vector=19)
 
-    img_dir = '/home/bst2017/workspace/data/coco/images/val2017/'
-    annFile = '/home/bst2017/workspace/data/coco/annotations/person_keypoints_val2017.json'
-    num_imgs = 50 # COCO 38%
+    img_dir = '/home/bst2017/workspace/data/coco/images/val2014/'
+    annFile = '/home/bst2017/workspace/data/coco/annotations/person_keypoints_minival2014.json'
+    num_imgs = 50#50 # COCO 38%
     orderCOCO = [0, -1, 6, 8, 10, 5, 7, 9,  12, 14, 16, 11, 13, 15, 2, 1, 4, 3] #[1, 0, 7, 9, 11, 6, 8, 10, 13, 15, 17, 12, 14, 16, 3, 2, 5, 4]
     myjsonValidate = list(dict())
 
@@ -365,7 +387,7 @@ def main():
                     else:
                         keypoints[(realpart) * 3] = candidate[index][0]
                         keypoints[(realpart) * 3 + 1] = candidate[index][1]
-                        keypoints[(realpart) * 3 + 2] = 1
+                        keypoints[(realpart) * 3 + 2] = 2
                         # score = score + candidate[index][2]
 
             keypoints_list = keypoints.tolist()
