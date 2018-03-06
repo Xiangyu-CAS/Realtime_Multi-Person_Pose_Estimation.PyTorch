@@ -1,5 +1,7 @@
 # Realtime_Multi-Person_Pose_Estimation.PyTorch
 Pytorch implementation of Realtime_Multi-Person_Pose_Estimation
+Original version folked from https://github.com/last-one/Pytorch_Realtime_Multi-Person_Pose_Estimation
+
 
 Train
 1. prepare training data
